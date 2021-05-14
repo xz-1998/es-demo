@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>表格</title>
+</head>
+
+<link type="text/css" rel="stylesheet" href="../js/bootstrap/bootstrap3/css/bootstrap.css">
+<link type="text/css" rel="stylesheet" href="../js/bootstrap/bootstrap3/css/bootstrap-theme.css">
+<script type="text/javascript" src="../js/jquery-easyui-1.5/jquery.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap/bootstrap3/js/bootstrap.min.js"></script>
+
+<!-- 引入表格的css和js文件 -->
+<link type="text/css" rel="stylesheet" href="../js/bootstrap/bootstrap-table/bootstrap-table.css">
+<script type=text/javascript src="../js/bootstrap/bootstrap-table/bootstrap-table.js"></script>
+<script type=text/javascript src="../js/bootstrap/bootstrap-table/locale/bootstrap-table-zh-CN.js"></script>
+
+<!-- 引入弹框的js文件 -->
+<script type=text/javascript src="../js/bootstrap/bootstrap-bootbox/bootbox.js"></script>
+
+<!-- 引入日期得css和js文件 -->
+<script src="../js/bootstrap/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
+<script src="../js/bootstrap/bootstrap-datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+<link rel="stylesheet" href="../js/bootstrap/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
+
+<!-- 引入上传文件的css和js文件 -->
+<script src="../js/bootstrap/bootstrap-fileinput/js/fileinput.js"></script>
+<script src="../js/bootstrap/bootstrap-fileinput/js/locales/zh.js"></script>
+<link rel="stylesheet" href="../js/bootstrap/bootstrap-fileinput/css/fileinput.css">
+
+
+<body>
+<div id="toolbar">
+    <div class="form-inline">
+    姓名：<input class="form-control" id="name" >
+    创建时间：<input class="form-control date" id="sdate" >——<input class="form-control date" id="edate" >
+    金额：<input class="form-control" id="sprice" >——<input class="form-control" id="eprice" ><br/>
+    <button type="button" onclick="seeAcc()" class="btn btn-warning glyphicon glyphicon-plus">搜索</button>
+    <button type="button" onclick="openAdd()" class="btn btn-warning glyphicon glyphicon-plus">新增</button>
+    </div>
+</div>
+<table id="myAcc"></table>
+</body>
+<script type="text/javascript">
+    $(function(){
+        findAll();
+
+        $('.date').datetimepicker({
+            language: 'zh-CN',//显示中文
+            //format: 'yyyy-mm-dd hh:ii:ss',//显示格式
+            format: 'yyyy-mm-dd',//显示格式
+            minView: "month",//设置只显示到月份
+            initialDate: new Date(),//初始化当前日期
+            autoclose: true,//选中自动关闭
+            todayBtn: true//显示今日按钮
+        });
+    })
+
+    // 条查
+    function seeAcc() {
+        $('#myAcc').bootstrapTable('refresh');//刷新表格
+    }
+    //查询
+    function findAll(){
+        $("#myAcc").bootstrapTable({
+            toolbar:'#toolbar',
+            url:'/user',
+            pagination:true, //是否展示分页
+            pageList:[2, 4, 6, 8],//分页组件
+            pageNumber:1,
+            pageSize:2,//默认每页条数
+            sidePagination:'server',//分页方式：client客户端分页，server服务端分页
+            striped:true,//斑马线
+            queryParams:function(){
+                return {
+                    page:this.pageNumber,//第几页
+                    rows:this.pageSize,
+                    name:$("#name").val(),
+                    sdate:$("#sdate").val(),
+                    edate:$("#edate").val(),
+                    sprice:$("#sprice").val(),
+                    eprice:$("#eprice").val()
+
+                };
+            },
+            columns:[
+                {checkbox:true,title:"全选"},//是否显示复选框
+                {field:"id",title:"id"},
+                {field:"name",title:"姓名"},
+                {field:"age",title:"年龄"},
+                {field:"sex",title:"性别",
+                formatter:function (value,row,index) {
+                    if (row.sex==1){
+                        return "男";
+                    }
+                    else  if (row.sex==2){
+                        return "女";
+                    }
+                }
+                },
+                {field:"detail",title:"描述"},
+                {field:"price",title:"余额"},
+                {field:"birth",title:"生日"},
+                {field:"tool",title:"操作",
+                    formatter:function (value,row,index) {
+                        var str = "<a href='javascript:up(\""+row.id+"\")'>修改</a>"
+                        str += "<a href='javascript:delAll(\""+row.id+"\")'>|删除</a>"
+                        return str;
+                    }
+                }
+            ]
+        });
+    }
+
+    var res;
+    function createAddContent(url){
+        $.ajax({
+            url:url,
+            async:false,//同步
+            success:function(data){
+                res = data;
+            }
+        });
+        return res;
+    }
+    //删除
+    function delAll(id) {
+        bootbox.confirm({
+            size: "small",
+            title: "提示",
+            message: "是否确认删除？",
+            buttons: {
+                confirm: {
+                    label: '确定',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: '取消',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function(result){
+                if(result){//删除
+                    //调用ajax请求后台，回调刷新表格
+                    $.ajax({
+                        url:"../user/delAll",
+                        type:"post",
+                        data:{ids:id},
+                        success:function(data){
+                            seeAcc();
+                            //刷新表格:有条查调用条查，没有条查自己写refresh方法
+
+                        }
+                    })
+                }
+            }
+        })
+    }
+    //打开弹框
+    function openAdd(){
+        bootbox.dialog({
+            title:'新增用户',
+            message: createAddContent("../page/add"),
+            closeButton: true,
+            buttons : {
+                "success" : {
+                    "label" : "<i class='icon-ok'></i> 保存",
+                    "className" : "btn-sm btn-success",
+                    "callback" : function() {//回调函数
+                        //提交表单
+                        $.ajax({
+                            url:"../user/addOrUp",
+                            type:'post',
+                            data:$("#userForm").serialize(),//表单序列化
+                            success:function(data){
+                                //刷新表格
+                                seeAcc();
+                            }
+                        });
+                    }
+                },
+                "cancel" : {
+                    "label" : "<i class='icon-info'></i> 取消",
+                    "className" : "btn-sm btn-danger"
+                }
+            }
+
+        });
+    }
+   //修改
+    function up(id){
+        bootbox.dialog({
+            title:'修改用户',
+            message: createAddContent("../page/add"),
+            closeButton: true,
+            buttons : {
+                "success" : {
+                    "label" : "<i class='icon-ok'></i> 保存",
+                    "className" : "btn-sm btn-success",
+                    "callback" : function() {//回调函数
+                        //提交表单
+                        $.ajax({
+                            url:"../user/addOrUp",
+                            type:'post',
+                            data:$("#userForm").serialize(),//表单序列化
+                            success:function(data){
+                                //刷新表格
+                                seeAcc();
+                            }
+                        });
+                    }
+                },
+                "cancel" : {
+                    "label" : "<i class='icon-info'></i> 取消",
+                    "className" : "btn-sm btn-danger"
+                }
+            }
+
+        });
+       $.ajax({
+           url:"../user/byId",
+           type:"get",
+           data:{id:id},
+           success:function (data) {
+               $("#name2").val(data.name);
+               $("input[name='sex']").each(
+                   function () {
+                       if(this.value==data.sex){
+                           this.checked=true;
+                       }
+                   }
+               )
+
+               $("#birth").val(data.birth);
+               $("#price").val(data.price);
+               $("#detail").val(data.detail);
+               $("#age").val(data.age);
+               $("#id").val(data.id);
+           }
+       })
+    }
+</script>
+</html>

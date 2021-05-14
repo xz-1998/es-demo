@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form id="userForm">
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-2"><label>姓名</label></div>
+            <input name="id" id="id" type="hidden">
+            <div class="col-md-4"><input class="form-control" name="name" id="name2"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-2"><label>性别</label></div>
+            <div class="col-md-4">
+                <input  type="radio" name="sex" value="1">男
+                <input  type="radio" name="sex" value="2">女
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-2"><label>生日</label></div>
+            <div class="col-md-4">
+                <input class="form-control date" name="birth" id="birth" onchange="getAge(this.value)">
+            </div>
+
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-2"><label>年龄</label></div>
+            <div class="col-md-4"><input class="form-control" name="age" id="age" readonly></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-2"><label>余额</label></div>
+            <div class="col-md-4">
+                <input class="form-control" name="price" id="price">
+            </div>
+
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-2"><label>自我介绍</label></div>
+            <div class="col-md-4">
+                <textarea class="form-control" name="detail" rows="5" cols="20" id="detail"></textarea>
+            </div>
+        </div>
+    </div>
+</form>
+</body>
+<script>
+
+    $('.date').datetimepicker({
+        language: 'zh-CN',//显示中文
+        //format: 'yyyy-mm-dd hh:ii:ss',//显示格式
+        format: 'yyyy-mm-dd',//显示格式
+        minView: "month",//设置只显示到月份
+        initialDate: new Date(),//初始化当前日期
+        autoclose: true,//选中自动关闭
+        todayBtn: true//显示今日按钮
+    });
+    function getAge(aa) {
+        var time = new Date().getTime();
+        var time1 = new Date(aa).getTime();
+        var age= Math.floor((time-time1)/1000/60/60/24/365)
+        $("#age").val(age);
+
+    }
+</script>
+</html>

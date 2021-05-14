@@ -1,0 +1,12 @@
+#配置elasticSearch信息
+spring:
+  data:
+    elasticsearch:
+      repositories:
+        #是否开启本地储存
+        enabled: true
+      cluster-nodes: localhost:9300
+      cluster-name: elasticsearch
+
+server:
+  port: 8083
